@@ -2,7 +2,7 @@
 #define SOMECLASS_H
 
 #include <memory>
-#include <string>
+#include <cstring>
 #include <cassert>
 
 /*******************************************************************************************************
