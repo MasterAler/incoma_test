@@ -1,0 +1,3 @@
+[submodule "task_2/thirdparty/CuteLogger"]
+	path = task_2/thirdparty/CuteLogger
+	url = https://github.com/dept2/CuteLogger.git
