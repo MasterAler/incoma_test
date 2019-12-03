@@ -29,7 +29,13 @@ int main(int argc, char *argv[])
                      , &Request::responseReceived
                      , [&](const QByteArray& response)
     {
-        LOG_INFO(QString{"Response: %1"}.arg(QString::fromUtf8(response)));
+//#ifdef QT_DEBUG
+        static int requestCount = 0;
+        if (requestCount > 1000)
+            app.quit();
+        ++requestCount;
+//#endif
+        LOG_INFO(QString{"Response [%1]: %2"}.arg(requestCount).arg(QString::fromUtf8(response)));
 
         QVariantMap responseData = Message::decodeMessage(response);
         if (responseData.contains(Message::TYPE_KEY) && responseData.contains(Message::DATA_KEY))
@@ -45,12 +51,6 @@ int main(int argc, char *argv[])
             }
         }
 
-//#ifdef QT_DEBUG
-        static int requestCount = 0;
-        if (requestCount > 1000)
-            app.quit();
-        ++requestCount;
-//#endif
         requester.send(requestGenerator.createRandomRequest());
     });
 

@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    thirdparty\CuteLogger \
+    thirdparty/CuteLogger \
     server \
     client \
 
