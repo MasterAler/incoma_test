@@ -27,14 +27,14 @@ int main(int argc, char *argv[])
 
     QObject::connect(&requester
                      , &Request::responseReceived
-                     , [&requester, &requestGenerator](const QByteArray& response)
+                     , [&](const QByteArray& response)
     {
         LOG_INFO(QString{"Response: %1"}.arg(QString::fromUtf8(response)));
 
-        QVariantMap responseData = Message::decodeResponse(response);
-        if (responseData.contains("type") && responseData.contains("data"))
+        QVariantMap responseData = Message::decodeMessage(response);
+        if (responseData.contains(Message::TYPE_KEY) && responseData.contains(Message::DATA_KEY))
         {
-            if (responseData["type"].value<Message::MessageType>() == Message::GET_KEYS)
+            if (responseData[Message::TYPE_KEY].value<Message::MessageType>() == Message::GET_KEYS)
             {
                 QStringList keys;
                 QVariantList dataList = responseData["data"].toList();
@@ -45,25 +45,33 @@ int main(int argc, char *argv[])
             }
         }
 
+//#ifdef QT_DEBUG
+        static int requestCount = 0;
+        if (requestCount > 1000)
+            app.quit();
+        ++requestCount;
+//#endif
         requester.send(requestGenerator.createRandomRequest());
     });
 
-    QObject::connect(&requester, &Request::error, [&requester, &requestGenerator](const QString& errMsg)
+    QObject::connect(&requester, &Request::error, [&](const QString& errMsg)
     {
         LOG_ERROR(errMsg);
-//        QThread::sleep(3);
-        requester.send(requestGenerator.createRandomRequest());
+        if (!requestGenerator.keyListIsEmpty())
+            requester.send(requestGenerator.createRandomRequest());
+        else
+        {
+            LOG_WARNING("Everything went too wrong, let's quit!");
+            app.quit();
+        }
     });
 
-    QObject::connect(&requester, &Request::critical, [&app](const QString& errMsg)
-    {
-        LOG_ERROR(errMsg);
-        app.quit();
-    });
+    QObject::connect(&requester, &Request::critical, &app, &QCoreApplication::quit);
 
     QObject::connect(&app, &QCoreApplication::aboutToQuit, [&requester]
     {
         requester.closeConnection();
+        LOG_INFO(QString{"\n\n Client average request timing = %1 ms"}.arg(requester.getAverageTiming()));
         LOG_INFO("=== Client finished ===");
     });
 

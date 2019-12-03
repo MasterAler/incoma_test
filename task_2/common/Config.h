@@ -26,8 +26,10 @@ namespace Config
         #ifdef QT_DEBUG
             Q_UNUSED(filename)
             ConsoleAppender* appender = new ConsoleAppender();
+//            appender->setDetailsLevel(Logger::Trace);
         #else
             FileAppender* appender = new FileAppender(filename);
+            appender->setDetailsLevel(Logger::Info);
         #endif
             cuteLogger->registerAppender(appender);
     }

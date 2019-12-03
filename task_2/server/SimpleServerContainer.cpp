@@ -3,9 +3,6 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-SimpleServerContainer::SimpleServerContainer()
-{ }
-
 QStringList SimpleServerContainer::getKeys() const
 {
     QReadLocker locker(&m_lock);

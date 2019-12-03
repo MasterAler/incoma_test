@@ -1,5 +1,7 @@
 #include "Request.h"
 
+#include <QElapsedTimer>
+
 #include <Logger.h>
 #include "Message.h"
 
@@ -16,8 +18,8 @@ class RequestPrivate
                          , QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error)
                          , [this](QAbstractSocket::SocketError /*socketError*/)
         {
+            m_clientSocket->close();
             emit q_ptr->error(QString{"Socket error: %1"}.arg(m_clientSocket->errorString()));
-            m_clientSocket->abort();
         });
 
         // response reading
@@ -30,12 +32,17 @@ class RequestPrivate
 
             if (!m_readingStream.commitTransaction())
                 emit q_ptr->error("Something went wrong with response");
+            else
+            {
+                qint64 timing = m_perfTimer.elapsed();
+                m_avgTiming = m_avgTiming * m_reqCount + timing;
+                ++m_reqCount;
+                m_avgTiming /= m_reqCount;
 
-            emit q_ptr->responseReceived(response);
+                LOG_TRACE(QString{"Request timing: %1 ms"}.arg(timing));
+                emit q_ptr->responseReceived(response);
+            }
         });
-
-        m_readingStream.setDevice(m_clientSocket);
-        m_readingStream.setVersion(QDataStream::Qt_5_0);
     }
 
     Request * const         q_ptr;
@@ -45,18 +52,27 @@ class RequestPrivate
 
     QDataStream             m_readingStream;
 
+    // benchmarking
+    QElapsedTimer           m_perfTimer;
+    qint64                  m_avgTiming = 0;
+    qint64                  m_reqCount = 0;
+
 private:
     bool connect()
     {
         m_clientSocket->connectToHost(m_addr, m_port);
-        if (!m_clientSocket->waitForConnected(500))
+        if (!m_clientSocket->waitForConnected())
         {
-            emit q_ptr->critical(QString{"Could not connect to %1:%2 Cause: %3"}
-                                 .arg(m_addr)
-                                 .arg(m_port)
-                                 .arg(m_clientSocket->errorString()));
+            LOG_ERROR(QString{"Could not connect to %1:%2 Cause: %3"}
+                      .arg(m_addr)
+                      .arg(m_port)
+                      .arg(m_clientSocket->errorString()));
+            emit q_ptr->critical();
             return false;
         }
+
+        m_readingStream.setDevice(m_clientSocket);
+        m_readingStream.setVersion(QDataStream::Qt_5_0);
         return true;
     }
 };
@@ -98,8 +114,16 @@ void Request::send(const QVariantMap& messageData)
             return; //RET
     }
 
-    d->m_clientSocket->write(Message::encodeCommand(messageData));
-    LOG_INFO("Request sent");
+    d->m_perfTimer.restart();
+    QByteArray message = Message::encodeMessage(messageData);
+    d->m_clientSocket->write(message);
+    LOG_TRACE(QString{"Request sent: %1"}.arg(QString::fromUtf8(message)));
+}
+
+qint64 Request::getAverageTiming() const
+{
+    Q_D(const Request);
+    return d->m_avgTiming;
 }
 
 void Request::closeConnection()

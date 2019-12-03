@@ -5,4 +5,5 @@ HEADERS += \
 
 INCLUDEPATH *= $$PWD
 
-SOURCES +=
+SOURCES += \
+    $$PWD/Message.cpp

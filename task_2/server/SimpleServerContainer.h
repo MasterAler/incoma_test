@@ -7,8 +7,6 @@
 class SimpleServerContainer: public AbstractServerContainer
 {
 public:
-    SimpleServerContainer();
-
     QStringList getKeys() const override;
 
     void setSomeValue(const QString& key, const QVariant& value) override;

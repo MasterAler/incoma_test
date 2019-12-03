@@ -20,13 +20,15 @@ public:
 
     void send(const QVariantMap& messageData);
 
+    qint64 getAverageTiming() const;
+
 public slots:
     void closeConnection();
 
 signals:
     void responseReceived(const QByteArray& response);
     void error(const QString& errMsg);
-    void critical(const QString& errMsg);
+    void critical();
 
 private:
     QScopedPointer<RequestPrivate> d_ptr;

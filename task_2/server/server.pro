@@ -5,6 +5,7 @@ CONFIG += c++11 console
 CONFIG -= app_bundle
 
 SOURCES += \
+        RequestHandler.cpp \
         RequestServer.cpp \
         ResponderThread.cpp \
         SimpleServerContainer.cpp \
@@ -15,6 +16,7 @@ include(../thirdparty/logger.pri)
 LIBS *= -L$$DESTDIR -lCuteLogger
 
 HEADERS += \
+    RequestHandler.h \
     RequestServer.h \
     ResponderThread.h \
     SimpleServerContainer.h

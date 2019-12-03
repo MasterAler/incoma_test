@@ -10,6 +10,8 @@ public:
 
     void setKnownKeys(const QStringList& keys);
 
+    bool keyListIsEmpty() const;
+
     static QVariantMap createKeyListRequest();
 
 private:
