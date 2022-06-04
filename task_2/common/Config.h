@@ -21,6 +21,8 @@ namespace Config
         return settings.value("addr", "127.0.0.1").toString();
     }
 
+    // здесь можно поменять уровень логирования,
+    // а также то, куда пишется вывод
     void setupLogging(const QString& filename)
     {
         #ifdef QT_DEBUG

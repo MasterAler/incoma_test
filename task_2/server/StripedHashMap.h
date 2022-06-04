@@ -38,13 +38,18 @@ constexpr bool arePowerOf2() {
 
 }
 
+/* Это, ЕМНИП, называться должно StripedMap. Идея, понятна, надо пояснить только
+ * перехеширование. Размер массива m_data кратен размеру массива m_lock (который не изменяется);
+ *  исходя из свойств арифметики по модулю, легко доказать, что в этом случае одна и та же ячейка m_data[k] не может
+ * соответствовать разным мьютексам m_lock[i] и m_lock[j].
+ **********************************************************************************************************************/
 template <typename KeyType, typename ValueType, std::size_t InitialSize = 256>
 class StripedHashMap
 {
     using PairType   = std::pair<KeyType, ValueType>;
     using BucketType = std::list<PairType>;
 
-    static constexpr float MAX_LOAD_FACTOR = 1.5; // ГОВОРЯТ, 1.5-2 это оптимальное значение.
+    static constexpr float MAX_LOAD_FACTOR = 1.5; // ГОВОРЯТ, 0.5-2 это оптимальное значение.
     static_assert(utils::arePowerOf2<InitialSize>(), "StripedHashMap: argument InitialSize must be a power of 2");
 
 public:
@@ -122,15 +127,15 @@ public:
 private:
     void rehash()
     {
-        std::lock_guard<std::mutex> locker{m_rehash_mutex};
-
-        // double-checked locking
-        if (load_factor() <= MAX_LOAD_FACTOR)
-            return; // RET
+//        std::lock_guard<std::mutex> locker{m_rehash_mutex}; // std::scoped_lock с C++17
 
         std::vector<std::unique_lock<std::shared_mutex>> all_locks;
         for (unsigned i = 0; i < m_locks.size(); ++i)
             all_locks.emplace_back(m_locks[i]);
+
+        // double-checked locking
+        if (load_factor() <= MAX_LOAD_FACTOR)
+            return; // RET
 
         static const int REALLOC_FACTOR = 2;
         std::vector<BucketType> new_data(REALLOC_FACTOR * m_data.size());

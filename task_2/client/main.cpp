@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
+    // А это, чтобы удобнее было проверять, единый файл плохо и пишется, и читается
     Config::setupLogging(QDir(QCoreApplication::applicationDirPath())
                                 .filePath(QString{"client_log_%1.txt"}.arg(QUuid::createUuid().toString())));
     LOG_INFO("=== Starting client ===");
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     {
 //#ifdef QT_DEBUG
         static int requestCount = 0;
-        if (requestCount > 1000)
+        if (requestCount > 1000) // количество запросов, менять и убирать отсюда по вкусу
             app.quit();
         ++requestCount;
 //#endif

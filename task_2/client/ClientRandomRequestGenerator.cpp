@@ -10,7 +10,7 @@ QVariantMap ClientRandomRequestGenerator::createRandomRequest()
 
     if (val < 90) // read
     {
-        if (val < 30) // read, keys list
+        if (val < 20) // read, keys list
         {
             result[Message::TYPE_KEY] = QVariant::fromValue(Message::GET_KEYS);
         }

@@ -13,6 +13,7 @@
 #include "SimpleServerContainer.h"
 #include "CustomServerContainer.h"
 
+// N.B.: Ключ "-s" выбирает решение в лоб вместо самописного для хранения данных
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);

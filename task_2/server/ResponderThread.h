@@ -18,8 +18,10 @@ class ResponderThread : public QThread
 public:
     explicit ResponderThread(int socketDescriptor, QObject *parent = nullptr);
 
+    // потому что лучше, чем замусоривать всё лишними абстракциями
     void setHandler(std::shared_ptr<RequestHandler> handler);
 
+    // тут вся логика соединения
     void run() override;
 
 private:

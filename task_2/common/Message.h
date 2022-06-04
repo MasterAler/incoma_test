@@ -7,16 +7,22 @@
 #include <QDataStream>
 #include <QJsonDocument>
 
+/*!
+ * \brief The Message class тут сделан
+ * только ради Q_ENUM, чтобы это перечисление средствами
+ * Qt превращать в строки. В идеале сюда можно все хелперы
+ * сложить, как в namespace.
+ */
 class Message
 {
     Q_GADGET
 public:
     enum MessageType
     {
-        GET_KEYS,
-        GET_VALUE,
-        SET_VALUE,
-        STATUS_MSG
+        GET_KEYS, /*!< получает список ключей */
+        GET_VALUE, /*!< получает данные */
+        SET_VALUE, /*!< добавляет/меняет данные */
+        STATUS_MSG /*!< так приходит ответ об ошибке */
     };
     Q_ENUM(MessageType)
 

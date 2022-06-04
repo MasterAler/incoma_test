@@ -25,7 +25,7 @@ void ResponderThread::setHandler(std::shared_ptr<RequestHandler> handler)
 void ResponderThread::run()
 {
     QTcpSocket serverSocket;
-    QEventLoop socketLoop;
+    QEventLoop socketLoop; // хочу так
 
     QObject::connect(&serverSocket, &QAbstractSocket::disconnected, [this, &socketLoop]
     {
@@ -47,8 +47,8 @@ void ResponderThread::run()
 
     QObject::connect(&serverSocket, &QAbstractSocket::readyRead, [&]
     {
-        LOG_DEBUG_TIME("= REQUEST HANDLING =");
-        auto start = std::chrono::high_resolution_clock::now();
+        LOG_DEBUG_TIME("= REQUEST HANDLING ="); // встроенного в логгер бенчмарка не хватет, он не очень точный
+        auto start = std::chrono::high_resolution_clock::now(); // так точнее, да
 
         readingStream.startTransaction();
 
