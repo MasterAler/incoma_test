@@ -13,7 +13,7 @@ QVariantMap RequestHandler::handleRequest(const QVariantMap& requestParams)
 
     if (!requestParams.contains(Message::TYPE_KEY))
     {
-        responseParams[Message::TYPE_KEY] = QVariant::fromValue(Message::STATUS_MSG);
+        responseParams[Message::TYPE_KEY] = Message::STATUS_MSG;
         responseParams[Message::DATA_KEY] = "BAD COMMAND";
     }
     else

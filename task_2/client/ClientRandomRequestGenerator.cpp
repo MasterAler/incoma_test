@@ -10,14 +10,14 @@ QVariantMap ClientRandomRequestGenerator::createRandomRequest()
 
     if (val < 90) // read
     {
-        if (val < 20) // read, keys list
+        if (val < 20) // read, keys list, make it 10 and less
         {
-            result[Message::TYPE_KEY] = QVariant::fromValue(Message::GET_KEYS);
+            result[Message::TYPE_KEY] = Message::GET_KEYS;
         }
         else // read, getter
         {
             int cmdPos = QRandomGenerator::global()->bounded(0, m_knownKeys.length());
-            result[Message::TYPE_KEY] = QVariant::fromValue(Message::GET_VALUE);
+            result[Message::TYPE_KEY] = Message::GET_VALUE;
             result[Message::DICT_KEY] = m_knownKeys[cmdPos];
         }
     }
@@ -25,7 +25,7 @@ QVariantMap ClientRandomRequestGenerator::createRandomRequest()
     {
         if (val > 95) // write, new value
         {
-            result[Message::TYPE_KEY]  = QVariant::fromValue(Message::SET_VALUE);
+            result[Message::TYPE_KEY]  = Message::SET_VALUE;
             result[Message::DICT_KEY]  = QString{"new_key_%1"}.arg(QRandomGenerator::global()->generate());
             result[Message::VALUE_KEY] = QRandomGenerator::global()->generate();
 
@@ -34,7 +34,7 @@ QVariantMap ClientRandomRequestGenerator::createRandomRequest()
         else // write, setter
         {
             int cmdPos = QRandomGenerator::global()->bounded(0, m_knownKeys.length());
-            result[Message::TYPE_KEY]  = QVariant::fromValue(Message::SET_VALUE);
+            result[Message::TYPE_KEY]  = Message::SET_VALUE;
             result[Message::DICT_KEY]  = m_knownKeys[cmdPos];
             result[Message::VALUE_KEY] = QRandomGenerator::global()->generate();
         }

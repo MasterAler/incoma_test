@@ -40,8 +40,9 @@ constexpr bool arePowerOf2() {
 
 /* Это, ЕМНИП, называться должно StripedMap. Идея, понятна, надо пояснить только
  * перехеширование. Размер массива m_data кратен размеру массива m_lock (который не изменяется);
- *  исходя из свойств арифметики по модулю, легко доказать, что в этом случае одна и та же ячейка m_data[k] не может
+ * исходя из свойств арифметики по модулю, легко доказать, что в этом случае одна и та же ячейка m_data[k] не может
  * соответствовать разным мьютексам m_lock[i] и m_lock[j].
+ * load_factor, если почитать, разумно делать 0.5 для оптимизации по скорости и 2. для оптимизации по памяти
  **********************************************************************************************************************/
 template <typename KeyType, typename ValueType, std::size_t InitialSize = 256>
 class StripedHashMap
@@ -108,15 +109,12 @@ public:
         return result;
     }
 
-    // имеет смысл скорее для отладки
-    int size() const
-    {
-        return m_size;
-    }
-
     std::list<KeyType> keys() const
     {
         // т.к. нужно копировать ключи, пришлось добавить мьютекс
+        // вообще, метод нужен скорее для отладки и демонстрации,
+        // т.к. редко кто-то возвращает то, что может тут же уже быть изменено
+        // (например, размеры контейнера и т.д.)
         std::shared_lock<RWMutex> keys_locker(m_key_mutex);
 
         std::list<KeyType> result;
@@ -127,8 +125,6 @@ public:
 private:
     void rehash()
     {
-//        std::lock_guard<std::mutex> locker{m_rehash_mutex}; // std::scoped_lock с C++17
-
         std::vector<std::unique_lock<std::shared_mutex>> all_locks;
         for (unsigned i = 0; i < m_locks.size(); ++i)
             all_locks.emplace_back(m_locks[i]);
@@ -148,6 +144,10 @@ private:
                 m_data[d_index(it->first)].emplace_back(*std::make_move_iterator(it));
             }
         }
+
+        // захватывать и отпускать надо в строго обратных порядках!
+        while(!all_locks.empty())
+            all_locks.pop_back();
     }
 
     void replace_impl(PairType&& item, std::size_t index)
@@ -180,9 +180,9 @@ private:
     std::vector<BucketType>       m_data  = std::vector<BucketType>(InitialSize);
     std::atomic_size_t            m_size{0};
 
+    // да, ключи выбиваются из стройной концепции, даже пришлось свой мьютекс им заводить
     std::set<KeyType>             m_keys;
     mutable RWMutex               m_key_mutex;
-    std::mutex                    m_rehash_mutex;
 
     static const std::function<std::size_t(const KeyType&)> Hasher;
 };
