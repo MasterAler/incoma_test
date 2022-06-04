@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QDebug>
+#include <QUuid>
 
 #include <Logger.h>
 #include <Config.h>
@@ -18,7 +19,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    Config::setupLogging(QDir(QCoreApplication::applicationDirPath()).filePath("client_log.txt"));
+    Config::setupLogging(QDir(QCoreApplication::applicationDirPath())
+                                .filePath(QString{"client_log_%1.txt"}.arg(QUuid::createUuid().toString())));
     LOG_INFO("=== Starting client ===");
 
     Request requester;
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
     QObject::connect(&app, &QCoreApplication::aboutToQuit, [&requester]
     {
         requester.closeConnection();
-        LOG_INFO(QString{"\n\n Client average request timing = %1 ms"}.arg(requester.getAverageTiming()));
+        LOG_INFO(QString{"\n\n Client average request timing = %1 us"}.arg(requester.getAverageTiming()));
         LOG_INFO("=== Client finished ===");
     });
 

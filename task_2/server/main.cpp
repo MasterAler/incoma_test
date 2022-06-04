@@ -1,6 +1,7 @@
 #include <csignal>
 
 #include <QCoreApplication>
+#include <QCommandLineParser>
 #include <QDir>
 
 #include <Logger.h>
@@ -8,18 +9,41 @@
 
 #include "RequestServer.h"
 #include "RequestHandler.h"
+
 #include "SimpleServerContainer.h"
+#include "CustomServerContainer.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
+
+    QCommandLineParser parser;
+
+    QCommandLineOption useSimpleOption("s", QCoreApplication::translate("simple", "Use simple rw-locked container"));
+    parser.addOption(useSimpleOption);
+    parser.process(app);
+    bool useSimple = parser.isSet(useSimpleOption);
+
+    // ------------------------
 
     Config::setupLogging(QDir(QCoreApplication::applicationDirPath()).filePath("server_log.txt"));
     LOG_INFO("=== Starting server ===");
 
     RequestServer responder;
     responder.setMaxPendingConnections(50);
-    std::shared_ptr<AbstractServerContainer> container = std::make_shared<SimpleServerContainer>();
+    std::shared_ptr<AbstractServerContainer> container;
+
+    if (useSimple)
+    {
+        LOG_INFO("Using SimpleServerContainer");
+        container = std::make_shared<SimpleServerContainer>();
+    }
+    else
+    {
+        LOG_INFO("Using CustomServerContainer");
+        container = std::make_shared<CustomServerContainer>();
+    }
+
     responder.setHandler(std::make_shared<RequestHandler>(container));
 
     quint16 port = Config::getPort();

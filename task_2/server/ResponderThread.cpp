@@ -1,5 +1,7 @@
 #include "ResponderThread.h"
 
+#include <chrono>
+
 #include <QEventLoop>
 #include <QDataStream>
 
@@ -7,6 +9,8 @@
 #include <Message.h>
 
 #include "RequestHandler.h"
+
+using namespace std::chrono_literals;
 
 ResponderThread::ResponderThread(int socketDescriptor, QObject *parent)
     : QThread(parent)
@@ -44,6 +48,7 @@ void ResponderThread::run()
     QObject::connect(&serverSocket, &QAbstractSocket::readyRead, [&]
     {
         LOG_DEBUG_TIME("= REQUEST HANDLING =");
+        auto start = std::chrono::high_resolution_clock::now();
 
         readingStream.startTransaction();
 
@@ -61,6 +66,10 @@ void ResponderThread::run()
             QVariantMap responseData = m_handler->handleRequest(Message::decodeMessage(request));
             serverSocket.write(Message::encodeMessage(responseData));
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> elapsed = end - start;
+        LOG_DEBUG(QString{"srv precise handle time = %1 us"}.arg(elapsed.count()));
     });
 
     if (!serverSocket.setSocketDescriptor(m_socketDescriptor))

@@ -34,12 +34,12 @@ class RequestPrivate
                 emit q_ptr->error("Something went wrong with response");
             else
             {
-                qint64 timing = m_perfTimer.elapsed();
+                qint64 timing = m_perfTimer.nsecsElapsed();
                 m_avgTiming = m_avgTiming * m_reqCount + timing;
                 ++m_reqCount;
                 m_avgTiming /= m_reqCount;
 
-                LOG_TRACE(QString{"Request timing: %1 ms"}.arg(timing));
+                LOG_TRACE(QString{"Request timing: %1 us"}.arg(timing / 1000));
                 emit q_ptr->responseReceived(response);
             }
         });
@@ -123,7 +123,7 @@ void Request::send(const QVariantMap& messageData)
 qint64 Request::getAverageTiming() const
 {
     Q_D(const Request);
-    return d->m_avgTiming;
+    return d->m_avgTiming / 1000;
 }
 
 void Request::closeConnection()
